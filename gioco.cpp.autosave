@@ -1,0 +1,112 @@
+#include "gioco.h"
+
+gioco::gioco(){
+    //inizializzo tutte le variabili statiche 
+    
+    
+    //creo il tabellone di gioco e scelgo le varie caselle (ad ognuna a seconda del tipo è assegnato un colore) 
+    nCaselle = g.inizializzaTabellone(viewTabellone, viewGiocatori);
+    g.disegnaTabellone(caselle);
+    g.scegliCasella(caselle);
+    
+    //inizializzo i dati dei giocatori
+    inputNGiocatori();
+    inputGiocatori();
+    
+    //visualizzo i dati dei giocatori
+    g.visualizzaDatiGiocatori(giocatori, nGiocatori);
+    g.visualizzaPedine(giocatori, nGiocatori);
+}
+
+void gioco::gioca(){
+    for (int i=0; i<nGiocatori; i++){ //faccio fare un turno ad ogni giocatore
+        //inizio turno n-esimo giocatore
+        if ((giocatori[i].getAccumultatoreTurni()==0)&&(!giocatori[i].hasBloccoPosizione())){//controllo che il giocatore non sia costretto a stare fermo(sia per n turni o fin quando qualcuno non raggiunge la sua casella)
+            if (giocatori[i].getBonus()>0){//se il giocatore ha delle caselle bonus da poter utilizzare, gli chiedo se vuole utilizzarlo
+                QString messaggio = "Ciao "+giocatori[i].getNome()+", ho notato che hai un bonus di "+QString::number(giocatori[i].getBonus())+" caselle da utilizzare, vuoi utilizzarlo? ";
+
+                popup utilizzaBonus(thisWindos, "Bonus", messaggio, imgBase, true); //creo un popoup yes/no
+                if (utilizzaBonus.exec() == QDialog::Accepted) {
+                    giocatori[i].modPosizione(giocatori[i].getPosizione()+giocatori[i].getBonus());
+                    giocatori[i].modPosizione(0);
+                    if (giocatori[i].getPosizione()>=(nCaselle-1)) {
+                        popup avviso(thisWindos, "Fine Partita", "CONGRATURAZIONI! "+giocatori[i].getNome()+" hai vinto la partita!", imgBase, false);
+                        return;
+                    }
+                }
+                else{
+                    popup avviso(thisWindos, "Bonus", "Nessun problema lo potrai utilizzare nel tuo prossimo turno", imgBase, false);
+                }
+            }
+
+            giocatori[i].modPosizione(giocatori[i].getPosizione()+tiraDado());
+            if (giocatori[i].getPosizione()>=(nCaselle-1)) {
+                popup avviso(thisWindos, "Fine Partita", "CONGRATURAZIONI! "+giocatori[i].getNome()+" hai vinto la partita!", imgBase, false);
+                return;
+            }
+            caselle[giocatori[i].getPosizione()].azione();
+        }
+        else{
+            if (giocatori[i].hasBloccoPosizione()){
+                popup avviso(thisWindos, "Immobilità", "Mi dispiace "+giocatori[i].getNome()+" non ti puoi muovere per questo turno, devi rimanere a provare il nuovo duetto di chitarre elettriche con Vampira fin quando non arriverà qualcun'altro al tuo posto, buona fortuna...", imgBase, false);
+            }
+            else{
+                giocatori[i].modAccumultatoreTurni(giocatori[i].getAccumultatoreTurni()-1);
+                popup avviso(thisWindos, "Immobilità", "Mi dispiace "+giocatori[i].getNome()+" devi rimanere altri "+QString::number(giocatori[i].getAccumultatoreTurni())+" turni a chiacchierare con Gommarosa, ci vediamo dopo", imgBase, false);
+            }
+        }
+    }
+}
+
+/*--INPUT DEL NUMERO DI GIOCATORI--*/
+void gioco::inputNGiocatori(){
+    QString messaggio = "Ciao, io sono Finn e lui è il mio migliore amico Jake. Vi diamo il benvenuto in questa nuova puntata di \"Adventure Time e il Gioco dell'Oca Pazza\" i cui vi faremo conoscere tutti i nostri amici e nemici. E' tutto pronto mancate solo voi! In quanti sarete oggi nella corsa per aggiudicarsi la vittoria?",
+            img = "../immagini/base.jpg";
+
+    QString num[8];
+    for (int i=0; i<8; i++){
+        num[i]=QString::number(i+2);
+    }
+
+    popup nG(parent, "Benvenuto", messaggio, img, false, num, 8);
+
+    if (nG.exec() == QDialog::Accepted) {
+        bool t;
+        nGiocatori = nG.getSceltaMultipla().toInt(&t, 10);
+    }
+    else{
+        nGiocatori = 0;
+    }
+}
+
+/*--INPUT DATI GIOCATORI(nome e colore)--*/
+void gioco::inputGiocatori(){
+
+    int n=9;
+    QString num[n];
+    num[0]="rosso";
+    num[1]="arancio";
+    num[2]="giallo";
+    num[3]="verde";
+    num[4]="blu";
+    num[5]="viola";
+    num[6]="rosa";
+    num[7]="bianco";
+    num[8]="nero";
+
+
+    for (int i=0; i<nGiocatori; i++){
+        QString msg = "Benvenuto, tu sei il "+QString::number(i+1)+"° giocatore: inserisci il tuo nickName e scegli il colore della tua pedina per poter iniziare questa nuova avventura con noi!";
+        popup player(parent, QString::number(i+1)+"° Giocatore ", msg, img, true, num, n);
+        if (player.exec() == QDialog::Accepted) {
+            giocatori[i] = giocatore(player.getInputText(), player.getSceltaMultipla());
+            eliminaElementoArray(num, 9, giocatori[i].getColore());
+            n--;
+        }
+    }
+}
+
+int gioco::tiroDado(){
+
+}
+

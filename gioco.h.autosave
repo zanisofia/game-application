@@ -1,0 +1,40 @@
+#ifndef GIOCO_H
+#define GIOCO_H
+
+#include <QWidget>
+
+#include <grafica.h>
+#include <giocatore.h>
+#include <carta.h>
+#include <casella.h>
+#include <popup.h>
+
+class gioco
+{
+public:
+    gioco();
+    void gioca();
+private:
+    //variabili utilizzate dal gioco
+    QGraphicsView* viewTabellone;
+    QGraphicsView* viewGiocatori;
+    QWidget* thisWindos;
+    grafica g;
+    casella caselle[];
+    int nCaselle;
+    giocatore giocatori[];
+    int nGiocatori;
+    carta carte[];
+    int nCarte;
+
+    QString imgBase = "../immagini/base.jpg";
+
+    //inizializzazione
+    void inputNGiocatori();
+    void inputGiocatori();
+
+    //gestione eventi turni
+    int tiraDado();
+};
+
+#endif // GIOCO_H
